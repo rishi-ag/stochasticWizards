@@ -56,7 +56,7 @@ perfect.info.lqr <- function(target, dynamics, policy, noise.model, params) {
     }
 
     # compute losses
-    dev.loss <- sum(apply(target - path, 1, function(x) x %*% params$Q %*% x))
+    dev.loss <- sum(apply(target - state, 1, function(x) x %*% params$Q %*% x))
     ctrl.loss <- sum(apply(controls, 1, function(u) u %*% params$R %*% u))
 
     return(list(
