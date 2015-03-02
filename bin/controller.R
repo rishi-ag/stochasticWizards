@@ -1,9 +1,3 @@
-require(MASS)
-
-
-# ----------------------------------------------------------------------
-# Perfect State Information Linear Quadratic Controller
-# ----------------------------------------------------------------------
 #' perfect.info.lqr
 #' 
 #' Steer the system towards a target state, optimizing for quadratic loss.
@@ -13,21 +7,19 @@ require(MASS)
 #' @param noise.model (list) Model from which the noise is drawn. Consists of a function \code{draw} that returns draws and the parameters \code{mean} and \code{var} of the model.
 #' @return A list with following elements: target, state, controls, noise, loss
 #' @export
-#' @import MASS
+#' @import
 #' @examples
-#' # set target trajectory
+#' # set target trajectory and parameters
 #' target <- matrix(c(1, 1, 1, -1, -1, -1, -1, 1, 1, 1),
 #'     nrow = 5,
 #'     ncol = 2,
 #'     byrow = TRUE
 #'     )
+#' params <- list(Q = diag(1, 2, 2), R = diag(0, 2, 2))
+#' noise.model <- list(draw = gaussian.noise, mean = rep(0, 2), var = diag(0.01, 2, 2))
 #'
 #' # run
-#' sim <- perfect.info.lqr(
-#'     target,
-#'     list(Q = diag(1, 2, 2), R = diag(0, 2, 2)),
-#'     list(draw = gaussian.noise, mean = rep(0, 2), var = diag(0.01, 2, 2))
-#'     )
+#' sim <- perfect.info.lqr(target, params, noise.model)
 #'
 
 perfect.info.lqr <- function(target, params, noise.model) {
@@ -83,24 +75,8 @@ perfect.info.lqr <- function(target, params, noise.model) {
 }
 
 
-gaussian.noise <- function(n, mean, var) {
-    return(mvrnorm(n, mean, var))
-}
 
 
 
 
 
-# TESTING CODE
-target <- matrix(
-    c(1, 1, 1, -1, -1, -1, -1, 1, 1, 1),
-    nrow = 5,
-    ncol = 2,
-    byrow = TRUE
-    )
-
-sim <- perfect.info.lqr(
-    target,
-    list(Q = diag(1, 2, 2), R = diag(0, 2, 2)),
-    list(draw = gaussian.noise, mean = rep(0, 2), var = diag(0.01, 2, 2))
-    )

@@ -1,0 +1,32 @@
+main <- function(path, dynamics, dist.model, dist.moments) {
+
+    # setup
+    target <- target
+    path <- matrix(nrow = dim(target)[1], ncol = dim(target[2]))
+    path[1,] <- target[1,]
+    controls <- matrix(nrow = dim(target)[1], ncol = dim(target[2]))
+    disturbances <- dist.model(n, dist.moments)
+    
+    for (wayp in 2:dim(path)[2]) {
+        controls[wayp,] <- controller(target[wayp + 1,], path[wayp,], dist.moments$mean)
+        path[wayp,] <- dynamics(path[wayp], controls[wayp,], disturbances[wayp,])
+    }
+
+    return(list(target = target, path = pat, controls = controls, disturbances = disturbances))
+}
+
+
+controller <- function(state, target, mean.dist) {
+    alpha <- 1
+    return(target)
+}
+
+
+dymamics <- function(state, control, disturbance) {
+    return(state + control + disturbance)
+}
+
+
+dist.model <- function(n, moments) {
+    return(matrix(0, nrow = n, ncol = 3))
+}

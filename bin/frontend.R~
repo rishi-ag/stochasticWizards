@@ -1,0 +1,14 @@
+# TESTING CODE
+target <- matrix(
+    c(1, 1, 1, -1, -1, -1, -1, 1, 1, 1),
+    nrow = 5,
+    ncol = 2,
+    byrow = TRUE
+    )
+
+sim <- perfect.info.lqr(
+    target,
+    list(Q = diag(1, 2, 2), R = diag(0.5, 2, 2)),
+    list(draw = gaussian.noise, mean = rep(0, 2), var = diag(0.01, 2, 2))
+    )
+
