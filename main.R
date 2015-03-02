@@ -1,6 +1,6 @@
-source("bin/controller.R")
-source("bin/stochastics.R")
-source("bin/viz.R")
+source("lib/controller.R")
+source("lib/stochastics.R")
+source("lib/viz.R")
 
 
 # TESTING

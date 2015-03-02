@@ -10,8 +10,8 @@ ar1.noise <- function(n, coefs, noise.cov) {
 
 
 ny.wind.model <- function(n) {
-    cov <- rbind(cbind(read.csv("../data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
-    coefs <- t(rbind(cbind(read.csv("../data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
+    cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
+    coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
     draws <- ar1.noise(n, coefs, cov)
     means <- t(cbind(coefs[,1], sapply(2:n, function(i) coefs %*% c(1, noise[i,]))))
     return(list(draws = draws, means = means))
