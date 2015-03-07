@@ -25,22 +25,18 @@ ny.wind.model <- function(n, wind.ini) {
 get.GPS.cov <- function() {
   
   set.seed(1000)
-  position <- data.frame(X = runif(1000000, min = -40, max = 40), 
-                         Y = runif(1000000, min = -40, max = 40), 
-                         Z = runif(1000000, min = -10, max = 10))
+  position <- data.frame(X = rnorm(1000000, mean = 10, sd = 1), 
+                         Y = rnorm(1000000, mean = 10, sd = 1), 
+                         Z = rnorm(1000000, mean = 20, sd = 2))
   sigma <- cov(as.matrix(position))
   write.table(x = sigma, file = "data/Covariance")
 }
 
+get.GPS.cov()
 #Note: get info on the format of the GPS system to use
-get.gps.noise <- function(lat, lon, alt) {
+get.gps.noise <- function(x, y, z) {
   
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(0,0,0), sigma = sigma)
-  
-  #convert displacement in meters to displacement in latitude and longitude
-  del.lat <- coord.noise[1] * (1/111111)
-  del.lon <- coord.noise[2] / (cos((del.lat * pi)/ 180) * 111111)
-  
-  return (c(lat + del.lat, lon + del.lon, alt + coord.noise[3]))
+  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
+  return (c(x + coord.noise[1], y + coord.noise[2], z + coord.noise[3]))
 }
