@@ -20,21 +20,26 @@ ny.wind.model <- function(n) {
 
 
 
+#Calculates GPS uncertainity cov matrix and writes it to data/covariance
+get.GPS.cov <- function() {
+  
+  set.seed(1000)
+  position <- data.frame(X = runif(1000000, min = -40, max = 40), 
+                         Y = runif(1000000, min = -40, max = 40), 
+                         Z = runif(1000000, min = -10, max = 10))
+  sigma <- cov(as.matrix(position))
+  write.table(x = sigma, file = "data/Covariance")
+}
+
 #Note: get info on the format of the GPS system to use
 get.gps.noise <- function(lat, lon, alt) {
-  #estimate variance covariance based on a radius of 10m uncertainity on the three corrdinates
-  set.seed(1000)
-  position <- data.frame(X = runif(1000000, min = -10, max = 10), 
-                         Y = runif(1000000, min = -10, max = 10), 
-                         Z = runif(1000000, min = -10, max = 10))
   
-  sigma <- cov(as.matrix(position))
-  #draw a random sample from the estimated cov
-  coord.noise <- mvtnorm::rmvnorm(1, mean = c(0,0,0), sigma = sigma)
+  sigma <- as.matrix(read.table("data/Covariance", header = T))
+  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(0,0,0), sigma = sigma)
   
   #convert displacement in meters to displacement in latitude and longitude
   del.lat <- coord.noise[1] * (1/111111)
-  del.lon <- coord.noise[2] / (cos(lat * pi/ 180) * 111111)
+  del.lon <- coord.noise[2] / (cos((del.lat * pi)/ 180) * 111111)
   
   return (c(lat + del.lat, lon + del.lon, alt + coord.noise[3]))
 }
