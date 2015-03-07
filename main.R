@@ -17,11 +17,15 @@ target <- matrix(
     byrow = TRUE
 )
 
+#Retrieving real wind CPNY new year's eve 2009-2010
+wind_ini<-as.vector(read.csv("data/wind_ini_CPNY.csv",stringsAsFactors =F))[,2]
+
+
 sim <- perfect.info.lqr(
     target,
     list(Q = diag(1, 3, 3), R = diag(0, 3, 3)),
     ny.wind.model,
-    wind.ini=c(-1,2,0)
+    wind.ini=c(wind_ini,0)
 )
 
 plot(sim$target,type="l",col="blue")
