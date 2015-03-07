@@ -20,7 +20,8 @@ target <- matrix(
 sim <- perfect.info.lqr(
     target,
     list(Q = diag(1, 3, 3), R = diag(0, 3, 3)),
-    ny.wind.model
+    ny.wind.model,
+    wind.ini=c(-1,2,0)
 )
 
 plot(sim$target,type="l",col="blue")

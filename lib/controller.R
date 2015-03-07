@@ -5,6 +5,7 @@
 #' @param target (numeric matrix) Target state at each iteration (starting at 0)
 #' @param params (list) Deterministic model parameters. Consists of symmetric weighting matrices \code{Q} and \code{R}.
 #' @param noise.model (list) Model which returns mean estimates and noise draws.
+#' @param wind.ini (numeric vector) Wind speed m/s at initial conditions
 #' @return A list with following elements: target, state, controls, noise, loss
 #' @export
 #' @import
@@ -22,13 +23,13 @@
 #' sim <- perfect.info.lqr(target, params, noise.model)
 #'
 
-perfect.info.lqr <- function(target, params, noise.model) {
+perfect.info.lqr <- function(target, params, noise.model,wind.ini=c(0,0,0)) {
 
     # math
     .policy <- function(x, K, Q, R, mean.noise)
         -solve(R + K) %*% K %*% (x + mean.noise)
     .dynamics <- function(x, u, w)
-        x + u + w
+        x + u + (60*0.2)*w # convert m/s to m shift, 20% efect on drone
     .riccati.eqn <- function(K, Q, R)
         K -  K %*% solve(K + R) %*% K + Q
     .loss <- function(X, U, Q, R)
@@ -38,7 +39,7 @@ perfect.info.lqr <- function(target, params, noise.model) {
     niter <- dim(target)[1]
     dims <- dim(target)[2]
     target <- target
-    noise <- noise.model(niter)
+    noise <- noise.model(niter,wind.ini)
     state <- matrix(nrow = niter, ncol = dims)
     state[1,] <- target[1,]
     controls <- matrix(nrow = niter - 1, ncol = dims)
