@@ -29,3 +29,7 @@ sim <- perfect.info.lqr(
 
 plot(sim$target,type="l",col="blue")
 lines(sim$state,type="l",col="red")
+
+
+#initiate GPS covariance
+get.GPS.cov()
