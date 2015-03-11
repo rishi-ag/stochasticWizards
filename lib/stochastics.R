@@ -71,11 +71,15 @@ get.GPS.cov <- function() {
   write.table(x = sigma, file = "data/Covariance")
 }
 
-get.GPS.cov()
-#Note: get info on the format of the GPS system to use
-get.gps.noise <- function(x, y, z) {
+get.gps.noise <- function(type) {
+  #GPS uncertainity is persistant. Only case to be added is when we dont want it
+  #altogether
   
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
-  return (c(x + coord.noise[1], y + coord.noise[2], z + coord.noise[3]))
+  coord.noise <- c(0,0,0)
+  if(type != "no_GPS"){
+    coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
+    
+  }
+  return(coord.noise)
 }
