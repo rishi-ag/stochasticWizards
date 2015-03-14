@@ -24,20 +24,23 @@ index<-which(real_wind$date=="2009-12-31 10:00:00")
 real_wind<-as.matrix(real_wind[index:(index+n),4:5])
 real_wind<-cbind(real_wind,rep(0,n+1))
 wind_ini<-real_wind[1,]
+#Defining loss matrices
+Q <- diag(1, 3, 3)
+R <- diag(0, 3, 3)
 
 # Find control
 sim <- perfect.info.lqr(
     target,
-    list(Q = diag(1, 3, 3), R = diag(0, 3, 3)),
+    list(Q = Q, R = R),
     ny.wind.model(n, wind.ini=wind_ini,type="simulated")
 )
 
 # Calculate real path with this control
-real<-real.path(sim$controls,real_wind,target[1,])
+real<-real.path(sim$controls,real_wind,target[1,],Q,R)
 
 plot(sim$target,type="l",col="blue")
 lines(sim$state,type="l",col="red")
-lines(real,type="l",col="green")
+lines(real$path,type="l",col="green")
 legend("bottomright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"))
 
 

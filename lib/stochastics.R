@@ -34,7 +34,7 @@ ar1.noise <- function(n, coefs, noise.cov,ini=c(0,0,0)) {
 #'
 #' @param n integer Number of predicted observations to be generated
 #' @param wind.ini Vector Initial wind speed (m/s) in x(east),y(north),z(vertical) directions
-#' @param type Factor Type of data to generate. 'null' means all wind results set to 0, 'fixed' means all wind results set to initial value, 'simulated' means simulate an AR1 model, 'online_simulated' mean to consider every step the real wind data and generate a 1-step ahead prediction from that value.
+#' @param type Factor Type of data to generate. 'null' means all wind results set to 0, 'fixed' means all wind results set to initial value, 'simulated' means simulate an AR1 model, 'simulated_det' means AR1 model without the stochastic part,'online_simulated' mean to consider every step the real wind data and generate a 1-step ahead prediction from that value.
 #' @return A list of two matrices. Draws are the stochastic draws from an AR1 model. Means are the expected values for next step, considering only the deterministic part of AR1 model
 #' @export
 #' @import
@@ -54,6 +54,13 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         draws <- ar1.noise(n, coefs, cov, wind.ini)
         means <- t(cbind(wind.ini, sapply(2:n, function(i) coefs %*% c(1, draws[i,]))))
+    } else if (type=="simulated_det") { 
+        coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))# coefs of the AR1 model
+        draws[1,]<-wind.ini
+        for (i in 2:n){
+            draws[i,] <- coefs %*% c(1, draws[i-1,])
+        }
+        means<-draws      
     } else if (type=="fixed"){ # suppose always same wind as initial
         draws<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
         means<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
