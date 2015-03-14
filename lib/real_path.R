@@ -2,7 +2,8 @@
 #' 
 #' Real path from control data, real wind and initial position
 #'
-#' @param controls matrix For each step, controls (x,y,z) sent to drone to determine next movement
+#' @param target Matrix Target path
+#' @param controls Matrix For each step, controls (x,y,z) sent to drone to determine next movement
 #' @param real_wind Matrix For each step, real wind that occurs (m/s) in x(east),y(north),z(vertical) directions
 #' @param initial position x,y,x initial coordinates
 #' @param Q Matrix Quadratic loss related to position
@@ -34,7 +35,7 @@
 
 
 
-real.path<-function(controls,real_wind,initial_position,Q,R){
+real.path<-function(target,controls,real_wind,initial_position,Q,R){
     #Loss function
     .loss <- function(X, U, Q, R)
         sum(apply(X, 1, function(x) x %*% Q %*% x)) + sum(apply(U, 1, function(u) u %*% R %*% u))
@@ -47,7 +48,7 @@ real.path<-function(controls,real_wind,initial_position,Q,R){
         path[i+1,]<-path[i,]+controls[i,]+0.2*60*real_wind[i]
     }
     # Calculate loss
-    loss<-.loss(path,controls,Q,R)
+    loss<-.loss(target-path,controls,Q,R)
         
     return (list(path=path,loss=loss))
 }

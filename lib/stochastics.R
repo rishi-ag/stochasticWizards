@@ -47,8 +47,8 @@ ar1.noise <- function(n, coefs, noise.cov,ini=c(0,0,0)) {
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
 #'
 ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
-    draws<-rep(NA,n)
-    means<-rep(NA,n)
+    draws<-matrix(NA,n,length(wind.ini))
+    means<-matrix(NA,n,length(wind.ini))
     if (type=="simulated"){ #AR1 shocks
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
@@ -71,14 +71,15 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         # Retrieve real wind data
         real_wind<-read.csv("data/CPNY_wind_NYeve.csv",stringsAsFactors =F)
         index<-which(real_wind$date=="2009-12-31 10:00:00")
-        real_wind<-as.matrix(real_wind[index:(index+n-1),3:4])
+        real_wind<-as.matrix(real_wind[index:(index+n-1),4:5])
         real_wind<-cbind(real_wind,rep(0,n))
         # Retrieve covariance matrix and AR1 coefficients
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         # Stochastic draws generated each step from real data
-        for (i in (1:n)){
-            draws[i] <- ar1.noise(n, coefs, cov, real_wind[i])
+        draws[1,]<-as.numeric(real_wind[1,])
+        for (i in (2:n)){
+            draws[i,] <- as.numeric(ar1.noise(2, coefs, cov, real_wind[i,])[2,])
         }
         # Means generated from expected value considering draws who already consider actual wind    
         means <- t(cbind(wind.ini, sapply(2:n, function(i) coefs %*% c(1, draws[i,]))))
