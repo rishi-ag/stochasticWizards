@@ -1,7 +1,7 @@
 library(MASS)
 library("mvtnorm")
 
-#' ar1.noise
+#' ar1
 #' 
 #' Autorregressive model of lag 1, three variables
 #'
@@ -9,6 +9,7 @@ library("mvtnorm")
 #' @param coefs matrix 2x4 matrix of coefficients for the autorregressive model (three variables plus intercept), including intercept.
 #' @param noise.cov Matrix Covariance matrix of the three values to generate gaussian shocks
 #' @param ini Vector (length 3) Initial value 
+#' @param noise Boolean True if AR1 with stochastic part is desired
 #' @return A matrix of n shocks from the model
 #' @export
 #' @import
@@ -20,11 +21,18 @@ library("mvtnorm")
 #' # get 10 shocks
 #' shocks <- ar1.noise(10, coefs,noise.cov, ini)
 #'
-ar1.noise <- function(n, coefs, noise.cov,ini=c(0,0,0)) {
-    shocks <- mvrnorm(n, rep(0, dim(noise.cov)[1]), noise.cov)
-    shocks[1,]<-ini
-    for (i in 2:dim(shocks)[1])
-        shocks[i,] <- coefs %*% c(1, shocks[i-1,]) + shocks[i,]
+ar1 <- function(n, coefs, noise.cov=NULL,ini=c(0,0,0),noise=T) {
+    if (noise==T){
+        shocks <- mvrnorm(n, rep(0, dim(noise.cov)[1]), noise.cov)
+        if (n==1) shocks<-t(shocks)
+    } else { shocks<-matrix(0,n,length(ini))}
+    
+    shocks[1,]<-t(coefs %*% c(1, ini)) + shocks[1,]
+    if (n>1){
+        for (i in 2:n)
+            shocks[i,] <- t(coefs %*% c(1, shocks[i-1,])) + shocks[i,]
+    }
+    
     return(shocks)
 }
 
@@ -52,21 +60,15 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
     if (type=="simulated"){ #AR1 shocks
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
-        draws <- ar1.noise(n, coefs, cov, wind.ini)
-        means <- t(cbind(wind.ini, sapply(2:n, function(i) coefs %*% c(1, draws[i,]))))
+        draws <- ar1(n, coefs, noise.cov=cov, ini=wind.ini,noise=T)
+        means <- ar1(n, coefs, ini=wind.ini,noise=F)
     } else if (type=="simulated_det") { 
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))# coefs of the AR1 model
-        draws[1,]<-wind.ini
-        for (i in 2:n){
-            draws[i,] <- coefs %*% c(1, draws[i-1,])
-        }
-        means<-draws      
+        means<-draws<- ar1(n, coefs, ini=wind.ini,noise=F)
     } else if (type=="fixed"){ # suppose always same wind as initial
-        draws<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
-        means<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
+        means<-draws<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
     } else if (type=="null"){ # no wind
-        draws<-matrix(0,nrow=n,ncol=length(wind.ini))
-        means<-matrix(0,nrow=n,ncol=length(wind.ini))
+        means<-draws<-matrix(0,nrow=n,ncol=length(wind.ini))
     } else if (type=="online_simulated"){ # real wind data affects dynamics, stochastic control
         # Retrieve real wind data
         real_wind<-read.csv("data/CPNY_wind_NYeve.csv",stringsAsFactors =F)
@@ -76,14 +78,11 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         # Retrieve covariance matrix and AR1 coefficients
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
-        # Stochastic draws generated each step from real data
-        draws[1,]<-as.numeric(real_wind[1,])
-        for (i in (2:n)){
-            draws[i,] <- as.numeric(ar1.noise(2, coefs, cov, real_wind[i,])[2,])
+        # Stochastic draws generated each step from real data, means without stochastic part
+        for (i in (1:n)){
+            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T)
+            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F)
         }
-        # Means generated from expected value considering draws who already consider actual wind    
-        means <- t(cbind(wind.ini, sapply(2:n, function(i) coefs %*% c(1, draws[i,]))))
-        
     } 
     
     return(list(draws = draws, means = means))

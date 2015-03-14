@@ -45,7 +45,7 @@ real.path<-function(target,controls,real_wind,initial_position,Q,R){
     path<-matrix(rep(NA,(n+1)*dim(controls)[2]),n+1,dim(controls)[2])
     path[1,]<-initial_position
     for (i in (1:n)){
-        path[i+1,]<-path[i,]+controls[i,]+0.2*60*real_wind[i]
+        path[i+1,]<-path[i,]+controls[i,]+0.2*60*mean(real_wind[i:i+1])
     }
     # Calculate loss
     loss<-.loss(target-path,controls,Q,R)
