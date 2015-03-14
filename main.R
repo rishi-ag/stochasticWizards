@@ -34,7 +34,11 @@ legend("topright",c("X dir","Y dir"),lty=1,col=c("red","blue"),bg="#FFFFFFAA")
 #Defining loss matrices
 Q <- diag(1, 3, 3)
 R <- diag(0, 3, 3)
-type<-c("simulated","simulated_det","fixed","null","online_simulated")
+type<-c("null","fixed","simulated_det","simulated","online_simulated")
+
+#Smmary vectors
+sim_loss<-rep(NA,length(type))
+real_loss<-rep(NA,length(type))
 
 #Check all types
 for (i in 1:length(type)){
@@ -52,8 +56,42 @@ for (i in 1:length(type)){
     lines(sim$state,type="l",col="red")
     lines(real$path,type="l",col="green")
     legend("bottomright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"))
-    text(585800,4517000,paste0('Real loss: ',round(real$loss),'\nSim loss: ',round(sim$loss)),cex=0.6,pos=4)
+    text(585900,4517000,paste0('Real loss: ',round(real$loss),'\nSim loss: ',round(sim$loss)),cex=0.6,pos=4)
+
+    sim_loss[i]<-sim$loss
+    real_loss[i]<-real$loss
 }
+#plot summary
+barplot(real_loss-sim_loss,names.arg=type,main="Losses by type",cex.names=0.7,
+        col=rainbow(length(type)))
+
+# Now Monte-carlo simulations for 'simulated' and 'online simulated'
+Nsim<-1000
+index<-which(type %in% c('simulated','online_simulated'),arr.ind=T)
+for (i in index[1]:index[2]){
+    sim_loss[i]<-0
+    real_loss[i]<-0
+    for (j in 1:Nsim){
+        # Find control
+        sim <- perfect.info.lqr(
+            target,
+            list(Q = Q, R = R),
+            ny.wind.model(n, wind.ini=wind_ini,type=type[i])
+        )
+        
+        # Calculate real path with this control
+        real<-real.path(target,sim$controls,real_wind,target[1,],Q,R)
+        
+        sim_loss[i]<-sim_loss[i]+sim$loss
+        real_loss[i]<-real_loss[i]+real$loss
+    }
+    sim_loss[i]<-sim_loss[i]/Nsim
+    real_loss[i]<-real_loss[i]/Nsim
+}
+
+#plot again, now averaged over stochastic types
+barplot(real_loss-sim_loss,names.arg=type,main="Losses by type, Monte-Carlo",cex.names=0.7,
+        col=rainbow(length(type)))
 
 
 #initiate GPS covariance

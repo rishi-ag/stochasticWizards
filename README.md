@@ -26,13 +26,15 @@ b) Wind data options (to be implemented at the wind model function)
 
 	-Fix wind simulation will be assuming a constant wind (by default the real 
     initial one)
+    
+    -Simulated_det would be simulate wind using AR1 but without the stochastic part.
 
 	-Simulated would be simulate wind (just considering an initial wind info if 
     exists, by default the real initial one) with a stochastic autorregressive 
     model. The controller will decide every move with the expected value, whereas
     the dynamics will be affected by expected + random value of wind.
 
-	-Online data would simulate wind as if at each step we knew the actual wind data,
+	-Online_simulated data would simulate wind as if at each step we knew the actual wind data,
     and so we just have to simulate the random part.
 
 c) Simulated vs real result (I think we should always plot simulated vs real result)
