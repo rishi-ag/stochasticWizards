@@ -71,8 +71,8 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         means<-draws<-matrix(0,nrow=n,ncol=length(wind.ini))
     } else if (type=="online_simulated"){ # real wind data affects dynamics, stochastic control
         # Retrieve real wind data
-        real_wind<-read.csv("data/CPNY_wind_NYeve.csv",stringsAsFactors =F)
-        index<-which(real_wind$date=="2009-12-31 10:00:00")
+        real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+        index<-which(real_wind$date=="2009-11-26 12:00:00")
         real_wind<-as.matrix(real_wind[index:(index+n-1),4:5])
         real_wind<-cbind(real_wind,rep(0,n))
         # Retrieve covariance matrix and AR1 coefficients
