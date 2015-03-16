@@ -80,8 +80,8 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         # Stochastic draws generated each step from real data, means without stochastic part
         for (i in (1:n)){
-            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T) * 12
-            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F) * 12
+            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T) * (60*0.2)
+            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F)
         }
     } 
     
