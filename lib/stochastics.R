@@ -57,7 +57,7 @@ ar1 <- function(n, coefs, noise.cov=NULL,ini=c(0,0,0),noise=T) {
 ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
     draws <- matrix(NA, n, length(wind.ini))
     means <- matrix(NA, n, length(wind.ini))
-    if (type=="simulated"){ #AR1 shocks
+    if (type == "simulated"){ #AR1 shocks
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         draws <- ar1(n, coefs, noise.cov=cov, ini=wind.ini,noise=T)
@@ -83,7 +83,7 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
             draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T)
             means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F)
         }
-    } 
+    }
     
     return(list(draws = draws * 12, means = means * 12))
 }
@@ -96,7 +96,5 @@ get.gps.noise <- function(noShocks) {
 
 
 gps.model <- function(n) {
-    return(list(
-        draws = get.gps.noise(n)
-        ))
+    return(list(draws = get.gps.noise(n)))
 }

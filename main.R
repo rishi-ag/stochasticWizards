@@ -2,17 +2,16 @@ source("lib/controller.R")
 source("lib/stochastics.R")
 source("lib/viz.R")
 source("lib/real_path.R")
-source("lib/kalman.R")
 
 
 # PERFECT STATE TESTING
 
 target <- matrix(
-    c(10, 10, 10,
-      10, -10, 20,
-      -10, -10, 30,
-      -10, 10, 20,
-      10, 10, 10),
+    c(100, 100, 100,
+      100, -100, 200,
+      -100, -100, 300,
+      -100, 100, 200,
+      100, 100, 100),
     nrow = 5,
     ncol = 3,
     byrow = TRUE
@@ -20,12 +19,12 @@ target <- matrix(
 
 Q <- diag(1, 3, 3)
 R <- diag(0, 3, 3)
-n<-dim(target)[1]
-real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
-index<-which(real_wind$date=="2009-11-26 12:00:00")
-real_wind<-as.matrix(real_wind[index:(index+n),4:5])
-real_wind<-cbind(real_wind,rep(0,n+1))
-wind_ini<-real_wind[1,]
+n <- dim(target)[1]
+real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index <- which(real_wind$date=="2009-11-26 12:00:00")
+real_wind <- as.matrix(real_wind[index:(index+n),4:5])
+real_wind<- cbind(real_wind,rep(0,n+1))
+wind_ini <- real_wind[1,]
 
 sim <- perfect.info.lqr(
     target,
@@ -37,11 +36,11 @@ sim <- perfect.info.lqr(
 # IMPERFECT STATE LQR TESTING
 
 target <- matrix(
-    c(10, 10, 10,
-      10, -10, 20,
-      -10, -10, 30,
-      -10, 10, 20,
-      10, 10, 10),
+    c(100, 100, 100,
+      100, -100, 200,
+      -100, -100, 300,
+      -100, 100, 200,
+      100, 100, 100),
     nrow = 5,
     ncol = 3,
     byrow = TRUE
