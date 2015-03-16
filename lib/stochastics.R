@@ -89,23 +89,9 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
 }
 
 
-
-#Calculates GPS uncertainity cov matrix and writes it to data/covariance
-get.GPS.cov <- function() {
-  
-  set.seed(1000)
-  position <- data.frame(X = rnorm(1000000, mean = 0, sd = 5), 
-                         Y = rnorm(1000000, mean = 0, sd = 5), 
-                         Z = rnorm(1000000, mean = 0, sd = 3))
-  sigma <- cov(as.matrix(position))
-  write.table(x = sigma, file = "data/Covariance")
-  return(sigma)
-}
-
-
 get.gps.noise <- function(noShocks) {
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  mvrnorm(n = noShocks, mu = c(10,10,20), Sigma = sigma)
+  mvrnorm(n = noShocks, mu = c(10,10,0), Sigma = sigma)
 }
 
 
