@@ -95,7 +95,7 @@ get.GPS.cov <- function() {
   set.seed(1000)
   position <- data.frame(X = rnorm(1000000, mean = 0, sd = 5), 
                          Y = rnorm(1000000, mean = 0, sd = 5), 
-                         Z = rnorm(1000000, mean = 0, sd = 9))
+                         Z = rnorm(1000000, mean = 0, sd = 1))
   sigma <- cov(as.matrix(position))
   write.table(x = sigma, file = "data/Covariance")
   sigma
