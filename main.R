@@ -51,7 +51,7 @@ sim <- imperfect.info.lqr(
     )
 
 
-# other stuff
+# other stuff. PROBABLY DOES NOT WORK CURRENTLY
 target <- matrix(
     c(586673.4, 4513101.97, 10,
       585969.8, 4513512.3, 10,
