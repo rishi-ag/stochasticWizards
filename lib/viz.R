@@ -35,6 +35,7 @@ base_plot<- ggmap(mapImageData) +
 return(base_plot)
 
 }
+<<<<<<< HEAD
 
 
 gps_to_utm<-function  (target) {
@@ -58,3 +59,5 @@ utm_to_gps<-function (sim) {
   state_LL<-as.data.frame(longlatcoor)
 
 }
+=======
+>>>>>>> 5e67b75ba539c479a20bef75ea43675a9c2c60f1

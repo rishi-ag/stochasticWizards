@@ -11,7 +11,13 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+<<<<<<< HEAD
 lib/ggmapTemp.png
 lib/stochastics.R
 lib/stochastics.R
 lib/stochastics.R
+=======
+
+# emacs backup
+*~
+>>>>>>> 5e67b75ba539c479a20bef75ea43675a9c2c60f1

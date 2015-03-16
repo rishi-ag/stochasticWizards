@@ -3,8 +3,8 @@ source("lib/stochastics.R")
 source("lib/viz.R")
 source("lib/real_path.R")
 
-# TESTING
 
+<<<<<<< HEAD
 # Central Park Rectangle, UTM 18T coordinates, starting at southern point and going clockwise
 source("data/parade_coordinates.R")
 target<-parade
@@ -18,6 +18,89 @@ target <- as.data.frame(spTransform(xy, CRS("+proj=utm +zone=18 ellps=WGS84")))
 
 
 target<- as.matrix(data.frame(target[,c("X","Y")],100))
+
+=======
+# PERFECT STATE TESTING
+
+target <- matrix(
+    c(100, 100, 100,
+      100, -100, 200,
+      -100, -100, 300,
+      -100, 100, 200,
+      100, 100, 100),
+    nrow = 5,
+    ncol = 3,
+    byrow = TRUE
+)
+
+Q <- diag(1, 3, 3)
+R <- diag(0, 3, 3)
+n <- dim(target)[1]
+real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index <- which(real_wind$date=="2009-11-26 12:00:00")
+real_wind <- as.matrix(real_wind[index:(index+n),4:5])
+real_wind<- cbind(real_wind,rep(0,n+1))
+wind_ini <- real_wind[1,]
+
+sim <- perfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    ny.wind.model(n, wind.ini=wind_ini)
+    )
+
+
+# IMPERFECT STATE LQR TESTING
+
+target <- matrix(
+    c(100, 100, 100,
+      100, -100, 200,
+      -100, -100, 300,
+      -100, 100, 200,
+      100, 100, 100),
+    nrow = 5,
+    ncol = 3,
+    byrow = TRUE
+)
+
+Q <- diag(1, 3, 3)
+R <- diag(0, 3, 3)
+n<-dim(target)[1]
+real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index<-which(real_wind$date=="2009-11-26 12:00:00")
+real_wind<-as.matrix(real_wind[index:(index+n),4:5])
+real_wind<-cbind(real_wind,rep(0,n+1))
+wind_ini<-real_wind[1,]
+
+sim <- imperfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    ny.wind.model(n, wind.ini=wind_ini),
+    gps.model(n)
+    )
+
+
+# other stuff
+
+target <- matrix(
+    c(586673.4, 4513101.97, 10,
+      585969.8, 4513512.3, 10,
+      587886.85, 4517117.2, 10,
+      588637.65, 4516736.65, 10,
+      586673.4, 4513101.97, 10),
+    nrow = 5,
+    ncol = 3,
+    byrow = TRUE
+)
+>>>>>>> 5e67b75ba539c479a20bef75ea43675a9c2c60f1
+
+Q <- diag(1, 3, 3)
+R <- diag(0, 3, 3)
+n<-dim(target)[1]
+real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index<-which(real_wind$date=="2009-11-26 12:00:00")
+real_wind<-as.matrix(real_wind[index:(index+n),4:5])
+real_wind<-cbind(real_wind,rep(0,n+1))
+wind_ini<-real_wind[1,]
 
 
 #Retrieving real wind CPNY macey's day 2009
