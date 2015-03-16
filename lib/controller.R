@@ -75,8 +75,18 @@ perfect.info.lqr <- function(target, params, noise.model) {
 }
 
 
+#' imperfect.info.lqr
+#' 
+#' Steer the system towards a target state, optimizing for quadratic loss.
+#'
+#' @param target (numeric matrix) Target state at each iteration (starting at 0)
+#' @param params (list) Deterministic model parameters. Consists of symmetric weighting matrices \code{Q} and \code{R}.
+#' @param noise.model (list) Model which returns mean estimates and noise draws.
+#' @return A list with following elements: target, state, controls, noise, loss
+#' @export
+#' @import
+#' @examples
 
+imperfect.state.lq <- function(target, params, noise.model, state.noise) {
 
-
-
-
+}

@@ -1,1 +1,1 @@
-require(ggplot2)
+library(ggplot2)
