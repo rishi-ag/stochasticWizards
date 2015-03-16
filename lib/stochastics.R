@@ -72,8 +72,7 @@ get.GPS.cov <- function() {
   sigma
 }
 
-get.gps.noise <- function() {
+get.gps.noise <- function(noShocks) {
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
-  return(coord.noise)
+  mvtnorm::rmvnorm(n = noShocks, mean = c(10,10,20), sigma = sigma)
 }
