@@ -6,16 +6,19 @@ source("lib/real_path.R")
 # TESTING
 
 # Central Park Rectangle, UTM 18T coordinates, starting at southern point and going clockwise
-target <- matrix(
-    c(586673.4, 4513101.97, 10,
-      585969.8, 4513512.3, 10,
-      587886.85, 4517117.2, 10,
-      588637.65, 4516736.65, 10,
-      586673.4, 4513101.97, 10),
-    nrow = 5,
-    ncol = 3,
-    byrow = TRUE
-)
+source("data/parade_coordinates.R")
+target<-parade
+wait_points<-parade
+
+xy <- data.frame(ID = 1:nrow(wait_points), X = wait_points[1:nrow(wait_points),1], Y = wait_points[1:nrow(wait_points),2])
+coordinates(xy) <- c("X", "Y")
+proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
+
+target <- as.data.frame(spTransform(xy, CRS("+proj=utm +zone=18 ellps=WGS84")))
+
+
+target<- as.matrix(data.frame(target[,c("X","Y")],100))
+
 
 #Retrieving real wind CPNY macey's day 2009
 n<-dim(target)[1]
@@ -55,7 +58,7 @@ for (i in 1:length(type)){
     plot(sim$target,type="l",col="blue",main=type[i],xlab="X coordinates",ylab="Y coordinates")
     lines(sim$state,type="l",col="red")
     lines(real$path,type="l",col="green")
-    legend("bottomright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"))
+    legend("topright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"), cex = 0.5)
     text(585900,4517000,paste0('Real loss: ',round(real$loss),'\nSim loss: ',round(sim$loss)),cex=0.6,pos=4)
 
     sim_loss[i]<-sim$loss
