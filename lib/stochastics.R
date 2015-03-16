@@ -55,8 +55,8 @@ ar1 <- function(n, coefs, noise.cov=NULL,ini=c(0,0,0),noise=T) {
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
 #'
 ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
-    draws<-matrix(NA,n,length(wind.ini))
-    means<-matrix(NA,n,length(wind.ini))
+    draws <- matrix(NA, n, length(wind.ini))
+    means <- matrix(NA, n, length(wind.ini))
     if (type=="simulated"){ #AR1 shocks
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
@@ -64,28 +64,28 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         means <- ar1(n, coefs, ini=wind.ini,noise=F)
     } else if (type=="simulated_det") { 
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))# coefs of the AR1 model
-        means<-draws<- ar1(n, coefs, ini=wind.ini,noise=F)
-    } else if (type=="fixed"){ # suppose always same wind as initial
-        means<-draws<-matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
-    } else if (type=="null"){ # no wind
-        means<-draws<-matrix(0,nrow=n,ncol=length(wind.ini))
-    } else if (type=="online_simulated"){ # real wind data affects dynamics, stochastic control
+        means <- draws <- ar1(n, coefs, ini=wind.ini,noise=F)
+    } else if (type=="fixed") { # suppose always same wind as initial
+        means <- draws <- matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
+    } else if (type=="null") { # no wind
+        means <- draws <- matrix(0,nrow=n,ncol=length(wind.ini))
+    } else if (type=="online_simulated") { # real wind data affects dynamics, stochastic control
         # Retrieve real wind data
-        real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
-        index<-which(real_wind$date=="2009-11-26 12:00:00")
-        real_wind<-as.matrix(real_wind[index:(index+n-1),4:5])
-        real_wind<-cbind(real_wind,rep(0,n))
+        real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+        index <- which(real_wind$date=="2009-11-26 12:00:00")
+        real_wind <- as.matrix(real_wind[index:(index+n-1),4:5])
+        real_wind <- cbind(real_wind, rep(0, n))
         # Retrieve covariance matrix and AR1 coefficients
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0) # to build the gaussian shocks
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         # Stochastic draws generated each step from real data, means without stochastic part
-        for (i in (1:n)){
-            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T) * 12
-            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F) * 12
+        for (i in (1:n)) {
+            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T)
+            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F)
         }
     } 
     
-    return(list(draws = draws, means = means))
+    return(list(draws = draws * 12, means = means * 12))
 }
 
 
@@ -96,10 +96,7 @@ get.gps.noise <- function(noShocks) {
 
 
 gps.model <- function(n) {
-    draws <- get.gps.noise(n)
-    
     return(list(
-        draws = draws,
-        kalman = kalman.filter
+        draws = get.gps.noise(n)
         ))
 }

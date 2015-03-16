@@ -48,14 +48,14 @@ perfect.info.lqr <- function(target, params, noise.model) {
     
     # run simulation
     for (i in 1:(niter - 1)) {
-
+        
         # compute optimal step
         controls[i,] <- .policy(
             state[i,] - target[i + 1,],
-            params$K[[niter - i]],
+            params$K[[niter - i + 1]],
             params$Q,
             params$R,
-            noise$means[i]
+            noise$means[i,]
             )
 
         # simulate next waypoint
@@ -120,16 +120,23 @@ imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
         # compute optimal step
         controls[i,] <- .policy(
             est.state[i,] - target[i + 1,],
-            params$K[[niter - i]],
+            params$K[[niter - i + 1]],
             params$Q,
             params$R,
-            noise$means[i]
+            noise$means[i,]
             )
 
         # simulate next waypoint
         tru.state[i + 1,] <- .dynamics(tru.state[i,], controls[i,], noise$draws[i,])
         noisy.state <- tru.state[i + 1,] + state.noise$draws[i + 1,]
-        filter <- state.noise$kalman(est.state[i,], controls[i,], noisy.state, params$Q, params$R, params$P)
+        filter <- kalman.filter(
+            est.state[i,],
+            controls[i,],
+            noisy.state,
+            params$Q,
+            params$R,
+            params$P
+            )
         est.state[i + 1,] <- filter$est.state
         params$P <- filter$P.new
     }
@@ -146,4 +153,27 @@ imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
         state.noise = state.noise,
         loss = loss
         ))
+}
+
+
+kalman.filter <- function(est.state.prev, control, noisy.state, Q, R, P.prev) {  
+    #Predict Stage
+    #Predicted (a priori) state estimate
+    est.state <- est.state.prev + control
+    #Predicted (a priori) estimate covariance
+    P.new <- P.prev + Q
+  
+    #Update Stage
+    #Innovation or measurement residual
+    y <- noisy.state - est.state
+    #Innovation (or residual) covariance
+    S <- P.new 
+    #Optimal Kalman gain
+    K <- P.new %*% solve(S)
+    #Updated (a posteriori) state estimate
+    est.state <- est.state + K %*% y
+    #Updated (a posteriori) estimate covariance
+    P.new <- (diag(3) - K) %*% P.new
+  
+    return(list(est.state = est.state, P.new = P.new))
 }
