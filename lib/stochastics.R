@@ -91,7 +91,7 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
 
 get.gps.noise <- function(noShocks) {
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  mvrnorm(n = noShocks, mu = c(10,10,0), Sigma = sigma)
+  mvrnorm(n = noShocks, mu = c(0,0,0), Sigma = sigma)
 }
 
 
