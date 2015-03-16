@@ -36,7 +36,7 @@ ar1 <- function(n, coefs, noise.cov = matrix(0, 3, 3), ini = c(0,0,0)) {
 #'
 #' # get 10 shocks
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
-#'
+
 ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0)
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))
@@ -77,6 +77,30 @@ ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
     return(draw)
 }
 
+
+#Calculates GPS uncertainity cov matrix and writes it to data/covariance
+get.GPS.cov <- function() {
+  
+  set.seed(1000)
+  position <- data.frame(X = rnorm(1000000, mean = 10, sd = 1), 
+                         Y = rnorm(1000000, mean = 10, sd = 1), 
+                         Z = rnorm(1000000, mean = 20, sd = 2))
+  sigma <- cov(as.matrix(position))
+  write.table(x = sigma, file = "Covariance")
+}
+
+get.gps.noise <- function(type) {
+  #GPS uncertainity is persistant. Only case to be added is when we dont want it
+  #altogether
+  
+  sigma <- as.matrix(read.table("Covariance", header = T))
+  coord.noise <- c(0,0,0)
+  if(type != "no_GPS"){
+    coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
+    
+  }
+  return(coord.noise)
+}
 
 get.gps.noise <- function(noShocks) {
   sigma <- as.matrix(read.table("data/Covariance", header = T))

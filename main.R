@@ -111,7 +111,7 @@ for (i in 1:length(type)){
     plot(sim$target,type="l",col="blue",main=type[i],xlab="X coordinates",ylab="Y coordinates")
     lines(sim$state,type="l",col="red")
     lines(real$path,type="l",col="green")
-    legend("bottomright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"))
+    legend("topright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"), cex = 0.5)
     text(585900,4517000,paste0('Real loss: ',round(real$loss),'\nSim loss: ',round(sim$loss)),cex=0.6,pos=4)
 
     sim_loss[i]<-sim$loss
