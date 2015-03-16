@@ -64,22 +64,16 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="stochastic") {
 get.GPS.cov <- function() {
   
   set.seed(1000)
-  position <- data.frame(X = rnorm(1000000, mean = 10, sd = 1), 
-                         Y = rnorm(1000000, mean = 10, sd = 1), 
-                         Z = rnorm(1000000, mean = 20, sd = 2))
+  position <- data.frame(X = rnorm(1000000, mean = 0, sd = 5), 
+                         Y = rnorm(1000000, mean = 0, sd = 5), 
+                         Z = rnorm(1000000, mean = 0, sd = 9))
   sigma <- cov(as.matrix(position))
   write.table(x = sigma, file = "data/Covariance")
+  sigma
 }
 
-get.gps.noise <- function(type) {
-  #GPS uncertainity is persistant. Only case to be added is when we dont want it
-  #altogether
-  
+get.gps.noise <- function() {
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  coord.noise <- c(0,0,0)
-  if(type != "no_GPS"){
-    coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
-    
-  }
+  coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
   return(coord.noise)
 }
