@@ -4,8 +4,7 @@ source("lib/viz.R")
 source("lib/real_path.R")
 
 
-# PERFECT STATE TESTING
-
+# TESTING PARAMETERS
 target <- matrix(
     c(100, 100, 100,
       100, -100, 200,
@@ -26,45 +25,33 @@ real_wind <- as.matrix(real_wind[index:(index+n),4:5])
 real_wind<- cbind(real_wind,rep(0,n+1))
 wind_ini <- real_wind[1,]
 
-sim <- perfect.info.lqr(
+
+# OPEN LOOP TESTING
+sim <- open.loop.lqr(
     target,
     list(Q = Q, R = R),
-    ny.wind.model(n, wind.ini=wind_ini)
+    function(n) ny.wind.model(n, wind.ini=wind_ini)
     )
 
 
-# IMPERFECT STATE LQR TESTING
+# PERFECT STATE TESTING
+sim <- perfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    function(n) ny.wind.model(n, wind.ini=wind_ini)
+    )
 
-target <- matrix(
-    c(100, 100, 100,
-      100, -100, 200,
-      -100, -100, 300,
-      -100, 100, 200,
-      100, 100, 100),
-    nrow = 5,
-    ncol = 3,
-    byrow = TRUE
-)
 
-Q <- diag(1, 3, 3)
-R <- diag(0, 3, 3)
-n<-dim(target)[1]
-real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
-index<-which(real_wind$date=="2009-11-26 12:00:00")
-real_wind<-as.matrix(real_wind[index:(index+n),4:5])
-real_wind<-cbind(real_wind,rep(0,n+1))
-wind_ini<-real_wind[1,]
-
+# IMPERFECT STATE TESTING
 sim <- imperfect.info.lqr(
     target,
     list(Q = Q, R = R),
-    ny.wind.model(n, wind.ini=wind_ini),
-    gps.model(n)
+    function(n) ny.wind.model(n, wind.ini=wind_ini),
+    gps.model
     )
 
 
 # other stuff
-
 target <- matrix(
     c(586673.4, 4513101.97, 10,
       585969.8, 4513512.3, 10,
