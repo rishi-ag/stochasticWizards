@@ -17,6 +17,25 @@ target <- matrix(
     byrow = TRUE
 )
 
+Q <- diag(1, 3, 3)
+R <- diag(0, 3, 3)
+n<-dim(target)[1]
+real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index<-which(real_wind$date=="2009-11-26 12:00:00")
+real_wind<-as.matrix(real_wind[index:(index+n),4:5])
+real_wind<-cbind(real_wind,rep(0,n+1))
+wind_ini<-real_wind[1,]
+
+sim <- imperfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    ny.wind.model(n, wind.ini=wind_ini,type=type[i]),
+    gps.model(n)
+    )
+
+
+
+
 #Retrieving real wind CPNY macey's day 2009
 n<-dim(target)[1]
 real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)

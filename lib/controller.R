@@ -28,7 +28,7 @@ perfect.info.lqr <- function(target, params, noise.model) {
     .policy <- function(x, K, Q, R, mean.noise)
         -solve(R + K) %*% K %*% (x + mean.noise)
     .dynamics <- function(x, u, w)
-        x + u + (60*0.2)*w # convert m/s to m shift, 20% efect on drone
+        x + u + w
     .riccati.eqn <- function(K, Q, R)
         K -  K %*% solve(K + R) %*% K + Q
     .loss <- function(X, U, Q, R)
@@ -87,6 +87,63 @@ perfect.info.lqr <- function(target, params, noise.model) {
 #' @import
 #' @examples
 
-imperfect.state.lq <- function(target, params, noise.model, state.noise) {
+imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
 
+    # math
+    .policy <- function(x, K, Q, R, mean.noise)
+        -solve(R + K) %*% K %*% (x + mean.noise)
+    .dynamics <- function(x, u, w)
+        x + u + w
+    .riccati.eqn <- function(K, Q, R)
+        K -  K %*% solve(K + R) %*% K + Q
+    .loss <- function(X, U, Q, R)
+        sum(apply(X, 1, function(x) x %*% Q %*% x)) + sum(apply(U, 1, function(u) u %*% R %*% u))
+
+    # preprocess
+    niter <- dim(target)[1]
+    dims <- dim(target)[2]
+    target <- target
+    noise <- noise.model
+    tru.state <- matrix(nrow = niter, ncol = dims)
+    tru.state[1,] <- target[1,]
+    est.state <- matrix(nrow = niter, ncol = dims)
+    est.state[1,] <- target[1,]
+    controls <- matrix(nrow = niter - 1, ncol = dims)
+    params$K <- list(params$Q)
+    params$P <- 100 * diag(dims)
+    for (i in (2:niter))
+        params$K[[i]] <- .riccati.eqn(params$K[[i-1]], params$Q, params$R)
+    
+    # run simulation
+    for (i in 1:(niter - 1)) {
+
+        # compute optimal step
+        controls[i,] <- .policy(
+            est.state[i,] - target[i + 1,],
+            params$K[[niter - i]],
+            params$Q,
+            params$R,
+            noise$means[i]
+            )
+
+        # simulate next waypoint
+        tru.state[i + 1,] <- .dynamics(tru.state[i,], controls[i,], noise$draws[i,])
+        noisy.state <- tru.state[i + 1,] + state.noise$draws[i + 1,]
+        filter <- state.noise$kalman(est.state[i,], controls[i,], noisy.state, params$Q, params$R, params$P)
+        est.state[i + 1,] <- filter$est.state
+        params$P <- filter$P.new
+    }
+
+    # compute loss
+    loss <- .loss(target - tru.state, controls, params$Q, params$R)
+
+    return(list(
+        target = target,
+        est.state = est.state,
+        tru.state = tru.state,
+        controls = controls,
+        noise = noise,
+        state.noise = state.noise,
+        loss = loss
+        ))
 }

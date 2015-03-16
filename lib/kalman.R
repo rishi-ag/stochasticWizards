@@ -1,11 +1,6 @@
-library("assertthat")
+library(assertthat)
 
 kalman.filter <- function(est.state.prev, control, noisy.state, Q, R, P.prev) {
-  assert_that(is.matrix(est.state.prev), nrow(est.state.prev) == 3, 
-              ncol(est.state.prev) == 1)
-  assert_that(is.matrix(control), nrow(control) == 3, ncol(control) == 1)
-  assert_that(is.matrix(noisy.state), nrow(noisy.state) == 3, 
-              ncol(noisy.state) == 1)
   assert_that(is.matrix(P.prev), nrow(P.prev) ==3,  ncol(P.prev) == 3)
   assert_that(is.matrix(Q), nrow(Q) ==3,  ncol(Q) == 3)
   assert_that(is.matrix(R), nrow(R) ==3,  ncol(R) == 3)

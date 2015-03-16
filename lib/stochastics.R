@@ -1,5 +1,6 @@
 library(MASS)
 
+
 #' ar1
 #' 
 #' Autorregressive model of lag 1, three variables
@@ -49,7 +50,7 @@ ar1 <- function(n, coefs, noise.cov=NULL,ini=c(0,0,0),noise=T) {
 #' 
 #' #Retrieving real wind CPNY new year's eve 2009-2010
 #' wind_ini<-as.vector(read.csv("data/wind_ini_CPNY.csv",stringsAsFactors =F))[,2]
-
+#'
 #' # get 10 shocks
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
 #'
@@ -95,13 +96,24 @@ get.GPS.cov <- function() {
   set.seed(1000)
   position <- data.frame(X = rnorm(1000000, mean = 0, sd = 5), 
                          Y = rnorm(1000000, mean = 0, sd = 5), 
-                         Z = rnorm(1000000, mean = 0, sd = 9))
+                         Z = rnorm(1000000, mean = 0, sd = 3))
   sigma <- cov(as.matrix(position))
   write.table(x = sigma, file = "data/Covariance")
-  sigma
+  return(sigma)
 }
+
 
 get.gps.noise <- function(noShocks) {
   sigma <- as.matrix(read.table("data/Covariance", header = T))
   mvrnorm(n = noShocks, mu = c(10,10,20), Sigma = sigma)
+}
+
+
+gps.model <- function(n) {
+    draws <- get.gps.noise(n)
+    
+    return(list(
+        draws = draws,
+        kalman = kalman.filter
+        ))
 }
