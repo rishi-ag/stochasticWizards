@@ -194,7 +194,7 @@ filled<-fill.wind(ourdata)
 # write.csv(filled,"CPNY_wind_2009_filled.csv")
 
 # NOTE: If starting here read table
-filled<-read.csv("CPNY_wind_2009_filled.csv")
+filled<-read.csv("CPNY_wind_2009_filled.csv",stringsAsFactors =F)
 
 
 # Adjust autorregressive model

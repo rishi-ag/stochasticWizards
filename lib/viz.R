@@ -45,4 +45,3 @@ base_plot<- ggmap(mapImageData) + geom_point(data=wait_points,aes(x=lon,y=lat), 
 return(base_plot)
 
 }
-

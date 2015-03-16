@@ -1,4 +1,5 @@
 library(MASS)
+library("mvtnorm")
 
 #' ar1
 #' 
@@ -79,8 +80,8 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0)) # coefs of the AR1 model
         # Stochastic draws generated each step from real data, means without stochastic part
         for (i in (1:n)){
-            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T) * 12
-            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F) * 12
+            draws[i,] <- ar1(1, coefs, noise.cov=cov, ini=real_wind[i,],noise=T) * (60*0.2)
+            means[i,] <- ar1(1, coefs, ini=real_wind[i,],noise=F)
         }
     } 
     
@@ -93,15 +94,22 @@ ny.wind.model <- function(n, wind.ini=c(0,0,0),type="simulated") {
 get.GPS.cov <- function() {
   
   set.seed(1000)
-  position <- data.frame(X = rnorm(1000000, mean = 0, sd = 5), 
-                         Y = rnorm(1000000, mean = 0, sd = 5), 
-                         Z = rnorm(1000000, mean = 0, sd = 9))
+  position <- data.frame(X = rnorm(1000000, mean = 10, sd = 1), 
+                         Y = rnorm(1000000, mean = 10, sd = 1), 
+                         Z = rnorm(1000000, mean = 20, sd = 2))
   sigma <- cov(as.matrix(position))
   write.table(x = sigma, file = "data/Covariance")
-  sigma
 }
 
-get.gps.noise <- function(noShocks) {
+get.gps.noise <- function(type) {
+  #GPS uncertainity is persistant. Only case to be added is when we dont want it
+  #altogether
+  
   sigma <- as.matrix(read.table("data/Covariance", header = T))
-  mvrnorm(n = noShocks, mu = c(10,10,20), Sigma = sigma)
+  coord.noise <- c(0,0,0)
+  if(type != "no_GPS"){
+    coord.noise <- mvtnorm::rmvnorm(n = 1, mean = c(10,10,20), sigma = sigma)
+    
+  }
+  return(coord.noise)
 }

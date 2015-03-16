@@ -28,7 +28,7 @@ perfect.info.lqr <- function(target, params, noise.model) {
     .policy <- function(x, K, Q, R, mean.noise)
         -solve(R + K) %*% K %*% (x + mean.noise)
     .dynamics <- function(x, u, w)
-        x + u + (60*0.2)*w # convert m/s to m shift, 20% efect on drone
+        x + u + w
     .riccati.eqn <- function(K, Q, R)
         K -  K %*% solve(K + R) %*% K + Q
     .loss <- function(X, U, Q, R)
