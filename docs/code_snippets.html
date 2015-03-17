@@ -261,7 +261,7 @@ img {
 </div>
 <div id="kalman-filter" class="section level1">
 <h1>Kalman Filter</h1>
-<p>Recursive procedure the Kalman filter operates recursively on streams of noisy input data to produce a statistically optimal estimate of the underlying system state. It is ued in the imperfect state LQR.</p>
+<p>Recursive procedure the Kalman filter operates recursively on streams of noisy input data to produce a statistically optimal estimate of the underlying system state. It is used in the imperfect state LQR.</p>
 <pre class="r"><code>kalman.filter &lt;- function(est.state.prev, control, noisy.state, Q, R, P.prev) { 
     
     est.state &lt;- est.state.prev + control
