@@ -37,7 +37,7 @@ ar1 <- function(n, coefs, noise.cov = matrix(0, 3, 3), ini = c(0,0,0)) {
 #' # get 10 shocks
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
 
-ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "track") {
+ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0)
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))
     
@@ -51,19 +51,23 @@ ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "track") {
     else if (type == "historical") {
         real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
         index <- which(real_wind$date=="2009-11-26 12:00:00")
-        series <- as.matrix(cbind(real_wind[index:(index+n-1),4:5], 0))
-        means <- as.matrix(cbind(real_wind[(index - 1):(index+n-2),4:5], 0))
+        series <- as.matrix(cbind(real_wind[(index+1):(index+n),4:5], 0))
+        means <- as.matrix(cbind(real_wind[index:(index+n-1),4:5], 0))
         draw <- list(
             draws = series,
             means = t(apply(means, 1, function(pt) coefs %*% c(1, pt)))
             )
-    } else if (type == "fixed") # suppose always same wind as initial
+    } else if (type == "fixed") {# suppose always same wind as initial
         draw <- list(
            draws = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T),
            means = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
            )
-    else
+    } else if (type == "simulated"){
         draw <- ar1(n, coefs, noise.cov = cov, ini = wind.ini)
+    }
+    # convert m/s to shift in meters, 1 minute lag every step, 20% effect
+    draw$draws<-60*0.2*draw$draws
+    draw$means<-60*0.2*draw$means
     return(draw)
 }
 

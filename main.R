@@ -1,6 +1,8 @@
 source("lib/controller.R")
 source("lib/stochastics.R")
 source("lib/viz.R")
+source("lib/plots.R")
+source("lib/real_path.R")
 
 
 # TESTING PARAMETERS
@@ -29,17 +31,30 @@ wind_ini <- real_wind[1,]
 sim <- open.loop.lqr(
     target,
     list(Q = Q, R = R),
-    function(n) ny.wind.model(n, wind.ini=wind_ini, type = "decay")
-    )
-
+    function(n) ny.wind.model(n, wind.ini=wind_ini, type = "simulated_det")
+)
+real <- open.loop.lqr(
+    target,
+    list(Q = Q, R = R),
+    function(n) ny.wind.model(n, wind.ini=wind_ini, type = "historical2")
+)
+plot.path(target,sim$state,real$state,sim_loss=sim$loss,real$loss,main="Open Loop Path")
+real2<-real.path(target,sim$controls,real_wind,Q,R)
+plot.path(target,sim$state,real2$path,sim_loss=sim$loss,real$loss,main="Open Loop Path")
+lines(real$state,type="l",col="orange")
 
 # PERFECT STATE TESTING
 sim <- perfect.info.lqr(
     target,
     list(Q = Q, R = R),
     function(n) ny.wind.model(n, wind.ini=wind_ini)
-    )
-
+)
+real <- perfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical")
+)
+plot.path(target,sim$state,real$state,sim_loss=sim$loss,real$loss,main="Perfect State Path")
 
 # IMPERFECT STATE TESTING
 sim <- imperfect.info.lqr(
@@ -47,10 +62,21 @@ sim <- imperfect.info.lqr(
     list(Q = Q, R = R),
     function(n) ny.wind.model(n, wind.ini=wind_ini),
     gps.model
-    )
+)
+real <- imperfect.info.lqr(
+    target,
+    list(Q = Q, R = R),
+    function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical"),
+    gps.model
+)
+plot.path(target,sim$est.state,real$est.state,sim_loss=sim$loss,real$loss,main="Imperfect State Path")
 
+# real<-real.path(target,sim$controls,real_wind,target[1,],Q,R)
 
-# other stuff. PROBABLY DOES NOT WORK CURRENTLY
+# -----------------------
+## NY Macy's day analysis
+# -----------------------
+
 target <- matrix(
     c(586673.4, 4513101.97, 100,
       585969.8, 4513512.3, 100,
@@ -61,82 +87,135 @@ target <- matrix(
     ncol = 3,
     byrow = TRUE
 )
-
 Q <- diag(1, 3, 3)
 R <- diag(0, 3, 3)
-n<-dim(target)[1]
-real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
-index<-which(real_wind$date=="2009-11-26 12:00:00")
-real_wind<-as.matrix(real_wind[index:(index+n),4:5])
-real_wind<-cbind(real_wind,rep(0,n+1))
-wind_ini<-real_wind[1,]
-
-
-#Retrieving real wind CPNY macey's day 2009
-n<-dim(target)[1]
-real_wind<-read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
-index<-which(real_wind$date=="2009-11-26 12:00:00")
-real_wind<-as.matrix(real_wind[index:(index+n),4:5])
-real_wind<-cbind(real_wind,rep(0,n+1))
-wind_ini<-real_wind[1,]
+n <- dim(target)[1]
+real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+index <- which(real_wind$date=="2009-11-26 12:00:00")
+real_wind <- as.matrix(real_wind[index:(index+n),4:5])
+# subset and add z component
+real_wind<- cbind(real_wind,rep(0,n+1))
+wind_ini <- real_wind[1,]
 
 #plot wind
+jpeg(filename = paste0('plots/wind.jpg'), units = "in", width = 10, height = 5, res = 400)
 plot(1:(n+1),real_wind[,1],type="l",xlab="index time",ylab="m/s",main="Wind profile",
      ylim=c(min(real_wind),max(real_wind)),col="red")
 lines(1:(n+1),real_wind[,2],col="blue")
 legend("topright",c("X dir","Y dir"),lty=1,col=c("red","blue"),bg="#FFFFFFAA")
+dev.off()
 
-#Defining loss matrices
-Q <- diag(1, 3, 3)
-R <- diag(0, 3, 3)
-type<-c("null","fixed","simulated_det","simulated","online_simulated")
+
+#Defining cases
+runs<-c("Open loop fixed","Open loop sim_det","Perfect state fixed","Perfect state simulated",
+        "Imperfect state fixed","Imperfect state simulated")
+wind<-c("fixed","simulated_det","fixed","simulated","fixed","simulated")
+
+### Single simulation, all cases ####
 
 #Smmary vectors
-sim_loss<-rep(NA,length(type))
-real_loss<-rep(NA,length(type))
+sim_loss<-rep(NA,length(runs))
+real_loss<-rep(NA,length(runs))
 
-#Check all types
-for (i in 1:length(type)){
-    # Find control
-    sim <- perfect.info.lqr(
-        target,
-        list(Q = Q, R = R),
-        ny.wind.model(n, wind.ini=wind_ini,type=type[i])
-    )
-    
-    # Calculate real path with this control
-    real<-real.path(target,sim$controls,real_wind,target[1,],Q,R)
-    
-    plot(sim$target,type="l",col="blue",main=type[i],xlab="X coordinates",ylab="Y coordinates")
-    lines(sim$state,type="l",col="red")
-    lines(real$path,type="l",col="green")
-    legend("topright",legend=c("target","simulated","real"),lty=1,col=c("blue","red","green"), cex = 0.5)
-    text(585900,4517000,paste0('Real loss: ',round(real$loss),'\nSim loss: ',round(sim$loss)),cex=0.6,pos=4)
-
-    sim_loss[i]<-sim$loss
-    real_loss[i]<-real$loss
-}
-#plot summary
-barplot(real_loss-sim_loss,names.arg=type,main="Losses by type",cex.names=0.7,
-        col=rainbow(length(type)))
-
-# Now Monte-carlo simulations for 'simulated' and 'online simulated'
-Nsim<-1000
-index<-which(type %in% c('simulated','online_simulated'),arr.ind=T)
-for (i in index[1]:index[2]){
-    sim_loss[i]<-0
-    real_loss[i]<-0
-    for (j in 1:Nsim){
-        # Find control
+for (i in 1:length(runs)){ # Open loop cases
+    if (i %in% c(1,2)){
+        sim <- open.loop.lqr(
+            target,
+            list(Q = Q, R = R),
+            function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i])
+        )
+        real <- open.loop.lqr(
+            target,
+            list(Q = Q, R = R),
+            function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical")
+        )
+    } else if (i %in% c(3,4)){ #Perfect state cases
         sim <- perfect.info.lqr(
             target,
             list(Q = Q, R = R),
-            ny.wind.model(n, wind.ini=wind_ini,type=type[i])
+            function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i])
         )
-        
-        # Calculate real path with this control
-        real<-real.path(target,sim$controls,real_wind,target[1,],Q,R)
-        
+        real <- perfect.info.lqr(
+            target,
+            list(Q = Q, R = R),
+            function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical")
+        )
+    } else { # Imperfect state cases
+        sim <- imperfect.info.lqr(
+            target,
+            list(Q = Q, R = R),
+            function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i]),
+            gps.model
+        )
+        real <- imperfect.info.lqr(
+            target,
+            list(Q = Q, R = R),
+            function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical"),
+            gps.model
+        ) 
+        sim$state<-sim$est.state
+        real$state<-real$est.state
+    }
+    sim_loss[i]<-sim$loss
+    real_loss[i]<-real$loss
+    
+    #save plot
+    jpeg(filename = paste0('plots/',runs[i],'.jpg'), units = "in", width = 5, height = 5, res = 400)
+    plot.path(target,sim$state,real$state,sim_loss[i],real_loss[i],main=runs[i])
+    dev.off()    
+}
+
+
+#plot summary
+jpeg(filename = paste0('plots/summary1run.jpg'), units = "in", width = 11, height = 5, res = 400)
+plot.bars(sim_loss,real_loss,runs,"Losses")
+dev.off()
+
+
+### Monte-Carlo simulation (for stochastic ones), all cases ####
+
+Nsim<-1000
+
+for (i in c(2,3,4,5)){ # stochastic components, i.e. all but open loop fixed and perfect state fixed
+    sim_loss[i]<-0
+    real_loss[i]<-0
+    for (j in 1:Nsim){
+        if (i %in% c(1,2)){
+            sim <- open.loop.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i])
+            )
+            real <- open.loop.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical")
+            )
+        } else if (i %in% c(3,4)){ #Perfect state cases
+            sim <- perfect.info.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i])
+            )
+            real <- perfect.info.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical")
+            )
+        } else { # Imperfect state cases
+            sim <- imperfect.info.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini, type = wind[i]),
+                gps.model
+            )
+            real <- imperfect.info.lqr(
+                target,
+                list(Q = Q, R = R),
+                function(n) ny.wind.model(n, wind.ini=wind_ini,type="historical"),
+                gps.model
+            ) 
+        }    
         sim_loss[i]<-sim_loss[i]+sim$loss
         real_loss[i]<-real_loss[i]+real$loss
     }
@@ -144,10 +223,10 @@ for (i in index[1]:index[2]){
     real_loss[i]<-real_loss[i]/Nsim
 }
 
-#plot again, now averaged over stochastic types
-barplot(real_loss-sim_loss,names.arg=type,main="Losses by type, Monte-Carlo",cex.names=0.7,
-        col=rainbow(length(type)))
-
+#plot summary
+jpeg(filename = paste0('plots/summaryMtCarlo.jpg'), units = "in", width = 11, height = 5, res = 400)
+plot.bars(sim_loss,real_loss,runs,"Monte-Carlo Losses")
+dev.off()
 
 #initiate GPS covariance
 get.GPS.cov()
