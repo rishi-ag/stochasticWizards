@@ -146,8 +146,8 @@ imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
 
         # simulate next waypoint
         tru.state[i + 1,] <- .dynamics(tru.state[i,], controls[i,], noise$draws[i,])
-        noisy.state <- tru.state[i + 1,] + state.noise$draws[i,]
-        filter <- kalman.filter(
+        noisy.state <- tru.state[i + 1,] + state.noise$draws[i,] # make next waypoint noisy due to GPS uncertainty
+        filter <- kalman.filter( #estimate as better as possible the true state with kalman filter
             est.state[i,],
             controls[i,],
             noisy.state,
@@ -175,6 +175,7 @@ imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
 
 
 kalman.filter <- function(est.state.prev, control, noisy.state, Q, R, P.prev) { 
+    
     est.state <- est.state.prev + control
     P.new <- P.prev + Q
   
