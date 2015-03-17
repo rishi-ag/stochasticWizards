@@ -2,6 +2,7 @@ source("lib/controller.R")
 source("lib/stochastics.R")
 source("lib/viz.R")
 source("lib/real_path.R")
+source("lib/plots.R")
 
 
 # TESTING PARAMETERS
@@ -32,7 +33,10 @@ sim <- open.loop.lqr(
     list(Q = Q, R = R),
     function(n) ny.wind.model(n, wind.ini=wind_ini)
     )
-
+# Calculate real path with these controls
+real<-real.path(target,sim$controls,real_wind,Q,R)
+#plot 
+plot.path(sim$target,sim$state,real$path,sim$loss,real$loss)
 
 # PERFECT STATE TESTING
 sim <- perfect.info.lqr(
@@ -40,7 +44,10 @@ sim <- perfect.info.lqr(
     list(Q = Q, R = R),
     function(n) ny.wind.model(n, wind.ini=wind_ini)
     )
-
+# Calculate real path with these controls
+real<-real.path(target,sim$controls,real_wind,Q,R)
+#plot 
+plot.path(sim$target,sim$state,real$path,sim$loss,real$loss)
 
 # IMPERFECT STATE TESTING
 sim <- imperfect.info.lqr(
@@ -49,7 +56,10 @@ sim <- imperfect.info.lqr(
     function(n) ny.wind.model(n, wind.ini=wind_ini),
     gps.model
     )
-
+# Calculate real path with these controls
+real<-real.path(target,sim$controls,real_wind,Q,R)
+#plot 
+plot.path(sim$target,sim$state,real$path,sim$loss,real$loss)
 
 # other stuff. PROBABLY DOES NOT WORK CURRENTLY
 target <- matrix(

@@ -55,7 +55,7 @@ ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
             draws = matrix(0,nrow=n,ncol=length(wind.ini)),
             means = matrix(0,nrow=n,ncol=length(wind.ini))
             )
-        
+    }
     return(draw)
 }
 
