@@ -31,7 +31,7 @@ open.loop.lqr <- function(target, params, noise.model) {
             params$K[[niter - i + 1]],
             params$Q,
             params$R,
-            rep(0, dims)
+            noise$means[i,]
             )
 
         # simulate next waypoint

@@ -13,7 +13,7 @@ ar1 <- function(n, coefs, noise.cov = matrix(0, 3, 3), ini = c(0,0,0)) {
             shocks[i,] <- t(coefs %*% c(1, shocks[i-1,])) + shocks[i,]
     }
 
-    means <- t(cbind(coefs %*% c(1, ini), sapply(1:(n-1), function(i) coefs %*% c(1, shocks[i,]))))
+    means <- t(apply(rbind(ini, shocks[1:(n-1),]), 1, function(pt) coefs %*% c(1, pt)))
     
     return(list(draws = shocks, means = means))
 }
@@ -37,24 +37,33 @@ ar1 <- function(n, coefs, noise.cov = matrix(0, 3, 3), ini = c(0,0,0)) {
 #' # get 10 shocks
 #' ny.wind.model(n=10, wind.ini=c(wind_ini,0),type="simulated")
 
-ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
+ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "track") {
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0)
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))
     
-    if (type == "simulated") {
+    #else if (type=="simulated_det")
+    #    draw <- ar1(n, coefs, ini = wind.ini)
+    if (type == "decay")# no wind
+        draw <- list(
+            draws = ar1(n, coefs, noise.cov = cov, ini = wind.ini)$draws,
+            means = ar1(n, coefs, ini = wind.ini)$means
+            )
+    else if (type == "historical") {
+        real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
+        index <- which(real_wind$date=="2009-11-26 12:00:00")
+        series <- as.matrix(cbind(real_wind[index:(index+n-1),4:5], 0))
+        means <- as.matrix(cbind(real_wind[(index - 1):(index+n-2),4:5], 0))
+        draw <- list(
+            draws = series,
+            means = t(apply(means, 1, function(pt) coefs %*% c(1, pt)))
+            )
+    } else if (type == "fixed") # suppose always same wind as initial
+        draw <- list(
+           draws = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T),
+           means = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
+           )
+    else
         draw <- ar1(n, coefs, noise.cov = cov, ini = wind.ini)
-    } else if (type=="simulated_det") {
-        draw <- ar1(n, coefs, ini = wind.ini)
-    } else if (type=="fixed") { # suppose always same wind as initial
-        draw <- list(
-            draws = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T),
-            means = matrix(rep(wind.ini,n),nrow=n,ncol=length(wind.ini),byrow=T)
-            )
-    } else if (type=="null") { # no wind
-        draw <- list(
-            draws = matrix(0,nrow=n,ncol=length(wind.ini)),
-            means = matrix(0,nrow=n,ncol=length(wind.ini))
-            )
         
     return(draw)
 }

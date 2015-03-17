@@ -1,7 +1,6 @@
 source("lib/controller.R")
 source("lib/stochastics.R")
 source("lib/viz.R")
-source("lib/real_path.R")
 
 
 # TESTING PARAMETERS
@@ -30,7 +29,7 @@ wind_ini <- real_wind[1,]
 sim <- open.loop.lqr(
     target,
     list(Q = Q, R = R),
-    function(n) ny.wind.model(n, wind.ini=wind_ini)
+    function(n) ny.wind.model(n, wind.ini=wind_ini, type = "decay")
     )
 
 
@@ -53,11 +52,11 @@ sim <- imperfect.info.lqr(
 
 # other stuff. PROBABLY DOES NOT WORK CURRENTLY
 target <- matrix(
-    c(586673.4, 4513101.97, 10,
-      585969.8, 4513512.3, 10,
-      587886.85, 4517117.2, 10,
-      588637.65, 4516736.65, 10,
-      586673.4, 4513101.97, 10),
+    c(586673.4, 4513101.97, 100,
+      585969.8, 4513512.3, 100,
+      587886.85, 4517117.2, 100,
+      588637.65, 4516736.65, 100,
+      586673.4, 4513101.97, 100),
     nrow = 5,
     ncol = 3,
     byrow = TRUE
