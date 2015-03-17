@@ -64,7 +64,6 @@ ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "track") {
            )
     else
         draw <- ar1(n, coefs, noise.cov = cov, ini = wind.ini)
-        
     return(draw)
 }
 
