@@ -76,7 +76,7 @@ plot.path(target,sim$est.state,real$est.state,sim_loss=sim$loss,real$loss,main="
 # -----------------------
 ## NY Macy's day analysis
 # -----------------------
-
+set.seed(3400)
 target<-as.matrix(read.csv("data/target_UTM.csv")[,-1])
 
 Q <- diag(1, 3, 3)
@@ -193,6 +193,23 @@ for (i in c(4,5,6,7,8)){ # cases with stochastic components
 jpeg(filename = paste0('plots/summaryMtCarlo.jpg'), units = "in", width = 11, height = 5, res = 400)
 plot.bars(sim_loss,real_loss/1000,runs,"Monte-Carlo simulated losses vs 'Real/1000' losses")
 dev.off()
+
+# Diverse wind plots
+set.seed(1000)
+type<-c("fixed","simulated_det","simulated","historical")
+winds<-list()
+jpeg(filename = paste0('plots/wind_comp.jpg'), units = "in", width = 10, height = 5, res = 400)
+plot(1:(n+1),real_wind[,1],type="l",xlab="Minutes",ylab="m/s",main="Wind profile",
+     ylim=c(-2,3),col=rainbow(5)[1],lwd=3,lty=3)
+for (i in seq_along(type)){
+    winds[[i]]<-ny.wind.model(n, wind.ini=wind_ini, type = type[i])
+    lines(1:(n+1),c(real_wind[1,1],winds[[i]]$draws[,1]/12),lty=1,col=rainbow(5)[i+1])
+    #lines(1:(n+1),c(real_wind[1,1],winds[[i]]$means[,1]/12),lty=2,col=rainbow(5)[i+1])
+}
+legend("bottomleft",c("Real",type),lty=c(3,rep(1,4)),lwd=c(3,rep(1,4)),col=rainbow(5),
+       bg="#FFFFFFAA",bty="n")
+dev.off()
+
 
 #initiate GPS covariance
 get.GPS.cov()
