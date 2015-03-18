@@ -41,14 +41,15 @@ ny.wind.model <- function(n, wind.ini = c(0,0,0), type = "simulated") {
         cov <- rbind(cbind(read.csv("data/cov_wind_residuals.csv", row.names = 1), 0), 0)
         coefs <- t(rbind(cbind(read.csv("data/coefs_AR1_wind.csv", row.names = 1), 0), 0))
     
-    #else if (type=="simulated_det")
-    #    draw <- ar1(n, coefs, ini = wind.ini)
-    if (type == "decay")# no wind
+    
+    if (type == "decay"){# no wind
         draw <- list(
             draws = ar1(n, coefs, noise.cov = cov, ini = wind.ini)$draws,
             means = ar1(n, coefs, ini = wind.ini)$means
             )
-    else if (type == "historical") {
+    }else if (type=="simulated_det"){
+        draw <- ar1(n, coefs, ini = wind.ini)
+    }else if (type == "historical") {
         real_wind <- read.csv("data/CPNY_wind_NYmacey.csv",stringsAsFactors =F)
         index <- which(real_wind$date=="2009-11-26 12:00:00")
         series <- as.matrix(cbind(real_wind[(index+1):(index+n),4:5], 0))

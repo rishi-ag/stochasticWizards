@@ -23,6 +23,7 @@ plot.bars<-function(sim_loss,real_loss,type,main="Losses"){
     n<-length(sim_loss)
     df<-data.frame(loss=c(sim_loss,real_loss),case=rep(c("simulated","real"),each=n),
                    wind_type=rep(type,2))
+    
     qplot(factor(wind_type,as.character(wind_type)),data=df,geom="bar",fill=case,weight=loss,position="dodge",
           main = main, xlab="Wind model",ylab="")
 }

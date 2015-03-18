@@ -49,5 +49,5 @@ real.path<-function(target,controls,real_wind,Q,R){
     # Calculate loss
     loss<-.loss(target-path,controls,Q,R)
         
-    return (list(path=path,loss=loss))
+    return (list(state=path,loss=loss))
 }
