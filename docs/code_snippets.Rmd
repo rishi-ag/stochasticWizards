@@ -202,7 +202,7 @@ imperfect.info.lqr <- function(target, params, noise.model, state.noise) {
 #Kalman Filter
 
 Recursive procedure the Kalman filter operates recursively on streams of noisy input data to produce a statistically optimal estimate of the underlying system state.
-It is ued in the imperfect state LQR.
+It is used in the imperfect state LQR.
 ```{r, eval=F}
 
 kalman.filter <- function(est.state.prev, control, noisy.state, Q, R, P.prev) { 
